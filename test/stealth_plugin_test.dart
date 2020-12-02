@@ -4,6 +4,9 @@ import 'package:test/test.dart';
 import 'utils/utils.dart';
 
 void main() {
+  // plugin is not supported on Firefox.
+  if (isPuppeteerFirefox) return;
+
   Server server;
   setUpAll(() async {
     server = await Server.create();

@@ -37,6 +37,7 @@ Most things that you can do manually in the browser can be done using Puppeteer!
 
 Download the last revision of chrome and launch it.
 ```dart
+import 'dart:io';
 import 'package:puppeteer/puppeteer.dart';
 
 void main() async {
@@ -47,11 +48,11 @@ void main() async {
   var myPage = await browser.newPage();
 
   // Go to a page and wait to be fully loaded
-  await myPage.goto('https://www.github.com', wait: Until.networkIdle);
+  await myPage.goto('https://www.github.com', wait: Until.domContentLoaded);
 
   // Do something... See other examples
   await myPage.screenshot();
-  await myPage.pdf();
+  await myPage.pdf(output: File('github_my_page.pdf').openWrite());
   await myPage.evaluate('() => document.title');
 
   // Gracefully close the browser's process
@@ -155,7 +156,7 @@ void main() async {
   await page.click(allResultsSelector);
 
   // Wait for the results page to load and display the results.
-  const resultsSelector = '.gsc-results .gsc-thumbnail-inside a.gs-title';
+  const resultsSelector = '.gsc-result a.gs-title';
   await page.waitForSelector(resultsSelector);
 
   // Extract the results from the page.

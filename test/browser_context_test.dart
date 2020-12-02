@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
+import 'utils/test_api.dart';
 import 'utils/utils.dart';
 
 // ignore_for_file: prefer_interpolation_to_compose_strings
@@ -53,7 +54,7 @@ void main() {
       await context.close();
       expect(await browser.pages, hasLength(1));
     });
-    test('window.open should use parent tab context', () async {
+    testFailsFirefox('window.open should use parent tab context', () async {
       var context = await browser.createIncognitoBrowserContext();
       var page = await context.newPage();
       await page.goto(server.emptyPage);
@@ -66,7 +67,7 @@ void main() {
       expect(popupTarget.browserContext, equals(context));
       await context.close();
     });
-    test('should fire target events', () async {
+    testFailsFirefox('should fire target events', () async {
       var context = await browser.createIncognitoBrowserContext();
       var events = [];
       context.onTargetCreated
@@ -89,7 +90,7 @@ void main() {
           ]));
       await context.close();
     });
-    test('should wait for a target', () async {
+    testFailsFirefox('should wait for a target', () async {
       var context = await browser.createIncognitoBrowserContext();
       var resolved = false;
       var targetPromise =

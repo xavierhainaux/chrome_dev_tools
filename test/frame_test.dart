@@ -1,5 +1,6 @@
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
+import 'utils/test_api.dart';
 import 'utils/utils.dart';
 
 // ignore_for_file: prefer_interpolation_to_compose_strings
@@ -92,8 +93,8 @@ void main() {
             '    http://<host>/frames/frame.html (aframe)'
           ]));
     });
-    test('should send events when frames are manipulated dynamically',
-        () async {
+    testFailsFirefox(
+        'should send events when frames are manipulated dynamically', () async {
       await page.goto(server.emptyPage);
       // validate frameattached events
       var attachedFrames = <Frame>[];
@@ -116,7 +117,8 @@ void main() {
       expect(detachedFrames.length, equals(1));
       expect(detachedFrames[0].isDetached, isTrue);
     });
-    test('should send "framenavigated" when navigating on anchor URLs',
+    testFailsFirefox(
+        'should send "framenavigated" when navigating on anchor URLs',
         () async {
       await page.goto(server.emptyPage);
       await Future.wait([
@@ -138,7 +140,7 @@ void main() {
       await page.goto(server.emptyPage);
       expect(hasEvents, isFalse);
     });
-    test('should detach child frames on navigation', () async {
+    testFailsFirefox('should detach child frames on navigation', () async {
       var attachedFrames = <Frame>[];
       var detachedFrames = <Frame>[];
       var navigatedFrames = <Frame>[];
@@ -178,7 +180,7 @@ void main() {
       expect(detachedFrames.length, equals(4));
       expect(navigatedFrames.length, equals(1));
     });
-    test('should support framesets', () async {
+    testFailsFirefox('should support framesets', () async {
       var attachedFrames = <Frame>[];
       var detachedFrames = <Frame>[];
       var navigatedFrames = <Frame>[];

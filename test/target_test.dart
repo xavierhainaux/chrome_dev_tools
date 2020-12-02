@@ -3,6 +3,7 @@ import 'package:logging/logging.dart';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
+import 'utils/test_api.dart';
 import 'utils/utils.dart';
 
 // ignore_for_file: prefer_interpolation_to_compose_strings
@@ -64,7 +65,8 @@ void main() {
           equals('Hello world'));
       expect(await originalPage.$('body'), isNotNull);
     });
-    test('should report when a new page is created and closed', () async {
+    testFailsFirefox('should report when a new page is created and closed',
+        () async {
       var otherPage = await waitFutures(
           context
               .waitForTarget((target) =>
@@ -93,7 +95,8 @@ void main() {
       expect(allPages, contains(page));
       expect(allPages, isNot(contains(otherPage)));
     });
-    test('should report when a service worker is created and destroyed',
+    testFailsFirefox(
+        'should report when a service worker is created and destroyed',
         () async {
       await page.goto(server.emptyPage);
       var createdTarget = context.onTargetCreated.first;
@@ -109,7 +112,7 @@ void main() {
           '() => window.registrationPromise.then(registration => registration.unregister())');
       expect(await destroyedTarget, equals(await createdTarget));
     });
-    test('should create a worker from a service worker', () async {
+    testFailsFirefox('should create a worker from a service worker', () async {
       var targetFuture =
           context.waitForTarget((target) => target.type == 'service_worker');
       await page.goto(server.prefix + '/serviceworkers/empty/sw.html');
@@ -119,7 +122,7 @@ void main() {
       expect(await worker.evaluate('() => self.toString()'),
           equals('[object ServiceWorkerGlobalScope]'));
     });
-    test('should create a worker from a shared worker', () async {
+    testFailsFirefox('should create a worker from a shared worker', () async {
       await page.goto(server.emptyPage);
       var targetFuture =
           context.waitForTarget((target) => target.type == 'shared_worker');
@@ -131,7 +134,7 @@ void main() {
       expect(await worker.evaluate('() => self.toString()'),
           equals('[object SharedWorkerGlobalScope]'));
     });
-    test('should report when a target url changes', () async {
+    testFailsFirefox('should report when a target url changes', () async {
       await page.goto(server.emptyPage);
       var changedTarget = context.onTargetChanged.first;
       await page.goto(server.crossProcessPrefix + '/');
@@ -142,7 +145,7 @@ void main() {
       await page.goto(server.emptyPage);
       expect((await changedTarget).url, equals(server.emptyPage));
     });
-    test('should not report uninitialized pages', () async {
+    testFailsFirefox('should not report uninitialized pages', () async {
       var targetChanged = false;
       var listener =
           context.onTargetChanged.listen((_) => targetChanged = true);
@@ -163,7 +166,8 @@ void main() {
           reason: 'target should not be reported as changed');
       await listener.cancel();
     });
-    test('should not crash while redirecting if original request was missed',
+    testFailsFirefox(
+        'should not crash while redirecting if original request was missed',
         () async {
       Completer<shelf.Response> serverResponse;
       server.setRoute('one-style.css', (req) {
@@ -189,7 +193,7 @@ void main() {
       // Cleanup.
       await newPage.close();
     });
-    test('should have an opener', () async {
+    testFailsFirefox('should have an opener', () async {
       await page.goto(server.emptyPage);
       var createdTarget = await waitFutures(context.onTargetCreated.first,
           [page.goto(server.prefix + '/popup/window-open.html')]);
@@ -201,7 +205,7 @@ void main() {
   }, timeout: Timeout(Duration(seconds: 10)));
 
   group('Browser.waitForTarget', () {
-    test('should wait for a target', () async {
+    testFailsFirefox('should wait for a target', () async {
       var resolved = false;
       var targetPromise =
           browser.waitForTarget((target) => target.url == server.emptyPage);

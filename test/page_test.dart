@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
+import 'utils/test_api.dart';
 import 'utils/utils.dart';
 
 // ignore_for_file: prefer_interpolation_to_compose_strings
@@ -52,7 +53,7 @@ void main() {
       await newPage.close();
       expect(await browser.pages, isNot(contains(newPage)));
     });
-    test('should run beforeunload if asked for', () async {
+    testFailsFirefox('should run beforeunload if asked for', () async {
       var newPage = await context.newPage();
       await newPage.goto(server.prefix + '/beforeunload.html');
       // We have to interact with a page so that 'beforeunload' handlers
@@ -66,7 +67,7 @@ void main() {
       await dialog.accept();
       await pageClosingPromise;
     });
-    test('should *not* run beforeunload by default', () async {
+    testFailsFirefox('should *not* run beforeunload by default', () async {
       var newPage = await context.newPage();
       await newPage.goto(server.prefix + '/beforeunload.html');
       // We have to interact with a page so that 'beforeunload' handlers
@@ -119,7 +120,7 @@ void main() {
       expect(error, isNotNull);
     });
   });
-  group('Page.Events.error', () {
+  groupFailsFirefox('Page.Events.error', () {
     test('should throw when page crashes', () async {
       var onErrorFuture = page.onError.first;
 
@@ -128,7 +129,7 @@ void main() {
       expect(error.message, equals('Page crashed!'));
     });
   });
-  group('Page.Events.Popup', () {
+  groupFailsFirefox('Page.Events.Popup', () {
     test('should work', () async {
       var dialogFuture = page.onPopup.first;
       await page.evaluate("() => window.open('about:blank')");
@@ -186,20 +187,20 @@ void main() {
       expect(await getPermission(page, PermissionType.geolocation),
           equals('prompt'));
     });
-    test('should deny permission when not listed', () async {
+    testFailsFirefox('should deny permission when not listed', () async {
       await page.goto(server.emptyPage);
       await context.overridePermissions(server.emptyPage, []);
       expect(await getPermission(page, PermissionType.geolocation),
           equals('denied'));
     });
-    test('should grant permission when listed', () async {
+    testFailsFirefox('should grant permission when listed', () async {
       await page.goto(server.emptyPage);
       await context
           .overridePermissions(server.emptyPage, [PermissionType.geolocation]);
       expect(await getPermission(page, PermissionType.geolocation),
           equals('granted'));
     });
-    test('should reset permissions', () async {
+    testFailsFirefox('should reset permissions', () async {
       await page.goto(server.emptyPage);
       await context
           .overridePermissions(server.emptyPage, [PermissionType.geolocation]);
@@ -209,7 +210,7 @@ void main() {
       expect(await getPermission(page, PermissionType.geolocation),
           equals('prompt'));
     });
-    test('should trigger permission onchange', () async {
+    testFailsFirefox('should trigger permission onchange', () async {
       await page.goto(server.emptyPage);
       await page.evaluate('''() => {
         window.events = [];
@@ -234,7 +235,8 @@ void main() {
       expect(await page.evaluate('() => window.events'),
           equals(['prompt', 'denied', 'granted', 'prompt']));
     });
-    test('should isolate permissions between browser contexs', () async {
+    testFailsFirefox('should isolate permissions between browser contexs',
+        () async {
       await page.goto(server.emptyPage);
       var otherContext = await browser.createIncognitoBrowserContext();
       var otherPage = await otherContext.newPage();
@@ -262,7 +264,7 @@ void main() {
     });
   });
   group('Page.setGeolocation', () {
-    test('should work', () async {
+    testFailsFirefox('should work', () async {
       await context
           .overridePermissions(server.hostUrl, [PermissionType.geolocation]);
       await page.goto(server.emptyPage);
@@ -278,7 +280,7 @@ void main() {
           throwsA(TypeMatcher<AssertionError>()));
     });
   });
-  group('Page.setOfflineMode', () {
+  groupFailsFirefox('Page.setOfflineMode', () {
     test('should work', () async {
       await page.setOfflineMode(true);
       await expectLater(
@@ -297,7 +299,7 @@ void main() {
   });
 
   group('ExecutionContext.queryObjects', () {
-    test('should work', () async {
+    testFailsFirefox('should work', () async {
       // Instantiate an object
       await page.evaluate("() => window.set = new Set(['hello', 'world'])");
       var prototypeHandle = await page.evaluateHandle('() => Set.prototype');
@@ -310,7 +312,7 @@ void main() {
           args: [objectsHandle]);
       expect(values, equals(['hello', 'world']));
     });
-    test('should work for non-blank page', () async {
+    testFailsFirefox('should work for non-blank page', () async {
       // Instantiate an object
       await page.goto(server.emptyPage);
       await page.evaluate("() => window.set = new Set(['hello', 'world'])");
@@ -338,7 +340,7 @@ void main() {
               'Exception: Prototype JSHandle must not be referencing primitive value')));
     });
   });
-  group('Page.Events.Console', () {
+  groupFailsFirefox('Page.Events.Console', () {
     test('should work', () async {
       var message = await waitFutures(page.onConsole.first,
           [page.evaluate("() => console.log('hello', 5, {foo: 'bar'})")]);
@@ -441,7 +443,7 @@ void main() {
       await blankFuture;
     });
   });
-  group('Page.metrics', () {
+  groupFailsFirefox('Page.metrics', () {
     void checkMetrics(Metrics metrics) {
       var metricsToCheck = {
         'Timestamp',
@@ -534,7 +536,7 @@ void main() {
       expect(response.url, equals(server.prefix + '/digits/2.png'));
     });
   });
-  group('Page.exposeFunction', () {
+  groupFailsFirefox('Page.exposeFunction', () {
     test('should work', () async {
       await page.exposeFunction('compute', (num a, num b) {
         return a * b;
@@ -623,7 +625,7 @@ void main() {
     });
   });
 
-  group('Page.Events.PageError', () {
+  groupFailsFirefox('Page.Events.PageError', () {
     test('should fire', () async {
       var error = await waitFutures(page.onError.first, [
         page.goto(server.prefix + '/error.html'),
@@ -707,7 +709,7 @@ void main() {
               '<img src="${server.hostUrl + '/' + imgPath}"></img>'),
           throwsA(TypeMatcher<TimeoutException>()));
     });
-    test('should await resources to load', () async {
+    testFailsFirefoxFIXME('should await resources to load', () async {
       var imgPath = 'img.png';
       Completer<shelf.Response> imgResponse;
       server.setRoute(imgPath, (req) {
@@ -786,7 +788,8 @@ void main() {
       expect(await page.evaluate('() => __es6injected'), equals(42));
     });
 
-    test('should throw an error if loading from url fail', () async {
+    testFailsFirefoxFIXME('should throw an error if loading from url fail',
+        () async {
       await page.goto(server.emptyPage);
       expect(() => page.addScriptTag(url: '/nonexistfile.js'),
           throwsA(predicate((e) => '$e'.contains('Evaluation failed'))));
@@ -883,7 +886,8 @@ void main() {
           equals('rgb(0, 128, 0)'));
     });
 
-    test('should throw when added with content to the CSP page', () async {
+    testFailsFirefox('should throw when added with content to the CSP page',
+        () async {
       await page.goto(server.prefix + '/csp.html');
       expect(
           () => page.addStyleTag(content: 'body { background-color: green; }'),
@@ -907,7 +911,7 @@ void main() {
     });
   });
 
-  group('Page.setJavaScriptEnabled', () {
+  groupFailsFirefox('Page.setJavaScriptEnabled', () {
     test('should work', () async {
       await page.setJavaScriptEnabled(false);
       await page
@@ -1031,7 +1035,8 @@ void main() {
           isTrue);
     });
     // @see https://github.com/GoogleChrome/puppeteer/issues/3327
-    test('should work when re-defining top-level Event class', () async {
+    testFailsFirefox('should work when re-defining top-level Event class',
+        () async {
       await page.goto(server.prefix + '/input/select.html');
       await page.evaluate('() => window.Event = null');
       await page.select('select', ['blue']);
@@ -1041,7 +1046,7 @@ void main() {
   });
 
   group('Page.Events.Close', () {
-    test('should work with window.close', () async {
+    testFailsFirefox('should work with window.close', () async {
       var newPageFuture =
           context.onTargetCreated.first.then((target) => target.page);
       await page

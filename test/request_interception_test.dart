@@ -5,6 +5,7 @@ import 'package:puppeteer/protocol/network.dart' show ResourceType, ErrorReason;
 import 'package:puppeteer/puppeteer.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
+import 'utils/test_api.dart';
 import 'utils/utils.dart';
 import 'utils/utils_golden.dart';
 
@@ -37,7 +38,7 @@ void main() {
     page = null;
   });
 
-  group('Page.setRequestInterception', () {
+  groupFailsFirefox('Page.setRequestInterception', () {
     test('should intercept', () async {
       await page.setRequestInterception(true);
       page.onRequest.listen((request) {
@@ -429,7 +430,7 @@ void main() {
     });
   });
 
-  group('Request.continue', () {
+  groupFailsFirefox('Request.continue', () {
     test('should work', () async {
       await page.setRequestInterception(true);
       page.onRequest.listen((request) => request.continueRequest());
@@ -511,7 +512,7 @@ void main() {
     });
   });
 
-  group('Request.respond', () {
+  groupFailsFirefox('Request.respond', () {
     test('should work', () async {
       await page.setRequestInterception(true);
       page.onRequest.listen((request) {

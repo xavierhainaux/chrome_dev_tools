@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:test/test.dart';
+import 'utils/test_api.dart';
 import 'utils/utils.dart';
 
 void main() {
@@ -95,7 +96,7 @@ void main() {
       var json = await aHandle.jsonValue;
       expect(json, equals({'foo': 'bar'}));
     });
-    test('should not work with dates', () async {
+    testFailsFirefox('should not work with dates', () async {
       var dateHandle = await page
           .evaluateHandle("() => new Date('2017-09-26T00:00:00.000Z')");
       var json = await dateHandle.jsonValue;
@@ -103,10 +104,15 @@ void main() {
     });
     test('should throw for circular objects', () async {
       var windowHandle = await page.evaluateHandle('window');
-      expect(
-          () => windowHandle.jsonValue,
-          throwsA(
-              predicate((e) => '$e' == 'Object reference chain is too long')));
+      if (isPuppeteerFirefox) {
+        expect(() => windowHandle.jsonValue,
+            throwsA(predicate((e) => '$e' == 'Object is not serializable')));
+      } else {
+        expect(
+            () => windowHandle.jsonValue,
+            throwsA(predicate(
+                (e) => '$e' == 'Object reference chain is too long')));
+      }
     });
   });
 

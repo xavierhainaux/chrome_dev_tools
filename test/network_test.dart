@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:puppeteer/puppeteer.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
+import 'utils/test_api.dart';
 import 'utils/utils.dart';
 
 // ignore_for_file: prefer_interpolation_to_compose_strings
@@ -112,7 +113,11 @@ void main() {
   group('Request.headers', () {
     test('should work', () async {
       var response = await page.goto(server.emptyPage);
-      expect(response.request.headers['user-agent'], contains('Chrome'));
+      if (isPuppeteerFirefox) {
+        expect(response.request.headers['user-agent'], contains('Firefox'));
+      } else {
+        expect(response.request.headers['user-agent'], contains('Chrome'));
+      }
     });
   });
 
@@ -126,7 +131,7 @@ void main() {
     });
   });
 
-  group('Response.fromCache', () {
+  groupFailsFirefox('Response.fromCache', () {
     test('should return |false| for non-cached content', () async {
       var response = await page.goto(server.emptyPage);
       expect(response.fromCache, isFalse);
@@ -152,7 +157,7 @@ void main() {
     });
   });
 
-  group('Response.fromServiceWorker', () {
+  groupFailsFirefox('Response.fromServiceWorker', () {
     test('should return |false| for non-service-worker content', () async {
       var response = await page.goto(server.emptyPage);
       expect(response.fromServiceWorker, isFalse);
@@ -178,7 +183,7 @@ void main() {
     });
   });
 
-  group('Request.postData', () {
+  groupFailsFirefox('Request.postData', () {
     test('should work', () async {
       await page.goto(server.emptyPage);
       server.setRoute('/post', (req) => shelf.Response.ok(''));
@@ -197,7 +202,7 @@ void main() {
     });
   });
 
-  group('Response.text', () {
+  groupFailsFirefox('Response.text', () {
     test('should work', () async {
       var response = await page.goto(server.prefix + '/simple.json');
       expect(await response.text, startsWith('{"foo": "bar"}'));
@@ -265,14 +270,14 @@ void main() {
     });
   });
 
-  group('Response.json', () {
+  groupFailsFirefox('Response.json', () {
     test('should work', () async {
       var response = await page.goto(server.prefix + '/simple.json');
       expect(await response.json, equals({'foo': 'bar'}));
     });
   });
 
-  group('Response.buffer', () {
+  groupFailsFirefox('Response.buffer', () {
     test('should work', () async {
       var response = await page.goto(server.prefix + '/pptr.png');
       var imageBuffer = File('test/assets/pptr.png').readAsBytesSync();
@@ -298,7 +303,7 @@ void main() {
     });
   });
 
-  group('Network Events', () {
+  groupFailsFirefox('Network Events', () {
     test('Page.Events.Request', () async {
       var requests = <Request>[];
       page.onRequest.listen(requests.add);
@@ -344,7 +349,11 @@ void main() {
       expect(failedRequests[0].url, contains('one-style.css'));
       expect(failedRequests[0].response, isNull);
       expect(failedRequests[0].resourceType, equals(ResourceType.stylesheet));
-      expect(failedRequests[0].failure, equals('net::ERR_FAILED'));
+      if (isPuppeteerFirefox) {
+        expect(failedRequests[0].failure, equals('NS_ERROR_FAILURE'));
+      } else {
+        expect(failedRequests[0].failure, equals('net::ERR_FAILED'));
+      }
       expect(failedRequests[0].frame, isNotNull);
     });
     test('Page.Events.RequestFinished', () async {
@@ -398,7 +407,7 @@ void main() {
   });
 
   group('Request.isNavigationRequest', () {
-    test('should work', () async {
+    testFailsFirefox('should work', () async {
       var requests = <String, Request>{};
       page.onRequest
           .listen((request) => requests[request.url.split('/').last] = request);
@@ -410,7 +419,7 @@ void main() {
       expect(requests['script.js'].isNavigationRequest, isFalse);
       expect(requests['style.css'].isNavigationRequest, isFalse);
     });
-    test('should work with request interception', () async {
+    testFailsFirefox('should work with request interception', () async {
       var requests = <String, Request>{};
       page.onRequest.listen((request) {
         requests[request.url.split('/').last] = request;
@@ -433,7 +442,7 @@ void main() {
     });
   });
 
-  group('Page.setExtraHTTPHeaders', () {
+  groupFailsFirefox('Page.setExtraHTTPHeaders', () {
     test('should work', () async {
       await page.setExtraHTTPHeaders({'foo': 'bar'});
       var request = await waitFutures(server.waitForRequest('/simple.html'), [
@@ -443,7 +452,7 @@ void main() {
     });
   });
 
-  group('Page.authenticate', () {
+  groupFailsFirefox('Page.authenticate', () {
     test('should work', () async {
       //TODO(xha): add auth to test server and re-enable test
       //server.setAuth('/empty.html', 'user', 'pass');
